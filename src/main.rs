@@ -27,11 +27,15 @@ use std::ops::Deref;
 
 /// Definitely not the most correct and efficient implementation of Linked List
 
-pub struct LinkedList<T: Clone + Debug> {
+#[derive(Debug)]
+pub struct LinkedList<T> {
     head: Option<Box<Node<T>>>,
 }
 
-impl<T: Clone + Debug> LinkedList<T> {
+impl<T> LinkedList<T>
+where
+    T: Clone + Debug,
+{
     fn new() -> Self {
         LinkedList { head: None }
     }
@@ -41,19 +45,30 @@ impl<T: Clone + Debug> LinkedList<T> {
     }
 
     fn clear(&mut self) {
-        todo!();
+        self.head = None;
     }
 
     fn len(&self) -> usize {
         self.head
             .as_ref()
-            .map_or(0, |head_node| head_node.count_len_recur())
+            .map_or(0, |head_node| head_node.count_len())
     }
 
     fn print(&self) {
+        println!("-- -- Print linked list -- --");
+
         if let Some(head_node) = &self.head {
-            head_node.print_recur();
+            head_node.print();
         }
+
+        println!("-- -- -- -- -- -- -- -- -- --");
+    }
+
+    fn pop(&mut self) -> Option<T> {
+        self.head.take().map(|boxed_node| {
+            self.head = boxed_node.next;
+            boxed_node.value
+        })
     }
 
     fn push(&mut self, value: T) {
@@ -66,25 +81,32 @@ impl<T: Clone + Debug> LinkedList<T> {
     }
 }
 
-#[derive(Clone)]
-struct Node<T: Clone + Debug> {
+#[derive(Debug, Clone)]
+struct Node<T> {
     next: Option<Box<Node<T>>>,
     value: T,
 }
 
-impl<T: Clone + Debug> Node<T> {
-    fn print_recur(&self) {
-        println!("Node value is: {:?}", self.value);
+impl<T> Node<T>
+where
+    T: Clone + Debug,
+{
+    fn print_recur(&self, counter: u16) {
+        println!("Node #{} with value: {:?}", counter, self.value);
 
         if let Some(next) = &self.next {
-            next.print_recur();
+            next.print_recur(counter + 1);
         }
     }
 
-    fn count_len_recur(&self) -> usize {
+    pub fn print(&self) {
+        self.print_recur(0);
+    }
+
+    pub fn count_len(&self) -> usize {
         self.next
             .as_ref()
-            .map_or(1, |next_node| next_node.count_len_recur() + 1)
+            .map_or(1, |next_node| next_node.count_len() + 1)
     }
 }
 
@@ -97,12 +119,19 @@ fn main() {
     let mut ll: LinkedList<Figure> = LinkedList::new();
 
     ll.push(Figure { area: 0 });
-
     ll.push(Figure { area: 10 });
     ll.push(Figure { area: 20 });
 
-    // ll.print();
+    ll.print();
 
-    let len = ll.len();
-    dbg!(len);
+    println!("-- now pop --");
+    let head_popped = ll.pop();
+    // dbg!(head_popped);
+
+    ll.print();
+
+    // dbg!(ll);
+
+    // let len = ll.len();
+    // dbg!(len);
 }
